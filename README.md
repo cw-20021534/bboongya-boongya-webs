@@ -1,36 +1,140 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+### 🎉🚴‍♀️💨 **자전거 라이딩 추천 서비스 PRD (Product Requirement Document)** 🌈✨ (Product Requirement Document)\*\*
 
-## Getting Started
+---
 
-First, run the development server:
+## 🌸🌟 **1. 개요** 🌟🌸
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **제품명:** 자전거 라이딩 추천 서비스
+- **설명:** 사용자가 **위치, 라이딩 시간, 거리** 정보를 입력하면 **AI가 라이딩 장소를 추천**해주는 모바일 웹 서비스
+- **주요 기술 스택:**
+  - **프론트엔드:** Next.js 15, React, Tailwind CSS, shadcn/ui
+  - **상태 관리:** Zustand
+  - **데이터 요청:** Tanstack Query
+  - **지도 API:** Naver Map API (경로 추천 API 포함)
+  - **AI 모델:** Llama3.3 (OpenAI API)
+  - **날씨 데이터:** OpenWeatherMap API
+  - **언어:** TypeScript
+- **지원 기기:** 모바일 전용
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🎨📱 **2. 화면 구성 (스텝별 UI)** 🛤️🚲
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 🎬💫 **2.1 Step 1: 인트로 페이지 (Intro)** 🌈🚀
 
-## Learn More
+**🔍 디자인 검토:** 최신 화면 플로우에 맞춰 인트로 페이지를 수정하였습니다.
 
-To learn more about Next.js, take a look at the following resources:
+| 기능                  | 설명                                                   |
+| --------------------- | ------------------------------------------------------ |
+| **서비스 소개**       | 간단한 소개 문구 및 주요 기능 설명                     |
+| **애니메이션 아이콘** | 로띠 애니메이션(Lottie) 사용하여 동적 시각적 효과 제공 |
+| **시작하기 버튼**     | 클릭 시 **설정 페이지(/settings)로 이동**              |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**UI 구성:**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **서비스 제목**: "자전거 라이딩 추천 서비스"
+- **로띠 애니메이션**: 자전거 라이딩 관련 애니메이션
+- **스타트 버튼**: `shadcn/ui`의 `Button` 컴포넌트 사용
+- **디자인 스타일**: 모바일 화면에 맞춰 **풀스크린**, **센터 정렬**
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### ⚙️🛠️ **2.2 Step 2: 설정 페이지 (Settings)** 🧭🎚️
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| 기능                 | 설명                                                                                                                 |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **위치 설정**        | GPS를 통해 사용자의 현재 위치를 가져옴 (Geolocation API) 및 Naver Maps 라이브러리를 사용하여 지도에서 직접 선택 가능 |
+| **라이딩 시간 설정** | 슬라이더를 사용하여 **10분\~300분(5시간)** 설정                                                                      |
+| **편도/왕복 선택**   | Toggle로 **편도/왕복** 선택                                                                                          |
+| **확인 버튼**        | 버튼 클릭 시 로딩 UI 표시 후 **추천 결과 페이지(/recommendations)로 이동**                                           |
+
+**UI 구성:**
+
+- **위치 입력 필드**: 기본적으로 **현재 위치 자동 설정** + **직접 선택 옵션**
+- **슬라이더 컴포넌트**: `shadcn/ui`의 `Slider` 사용
+- **토글 버튼**: **왕복/편도 선택** (`ToggleGroup`)
+- **확인 버튼**: 하단 고정, 클릭 시 로딩 애니메이션
+
+---
+
+### 🗺️✨ **2.3 Step 3: 결과 페이지 (Results)** 🏆🎯
+
+| 기능                    | 설명                                                                               |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| **추천 장소 지도 표시** | Naver Map API와 경로 추천 API를 사용하여 **최우선 추천 장소**의 경로를 지도에 표시 |
+| **추천 장소 리스트**    | 최대 5개의 장소를 **그리드 형태**로 표시                                           |
+| **장소 선택**           | 리스트의 장소를 클릭하면 **해당 장소를 지도에 표시**                               |
+
+**UI 구성:**
+
+- **지도 영역**: 최상단에 **Naver Map**이 전체 경로와 함께 표시
+- **추천 장소 리스트**: **2x2 또는 1x5 그리드**로 출력
+- **클릭 이벤트**: **리스트의 장소 선택 시 해당 위치로 지도 이동**
+
+---
+
+## 🔄💡 **3. 데이터 흐름** 🌐🚴
+
+### **3.1 서비스 흐름**
+
+1️⃣ **인트로 페이지 (\*\***`/`\***\*)** → 서비스 소개 후 "시작하기" 버튼 클릭\
+2️⃣ **설정 페이지 (\*\***`/settings`\***\*)** → **위치, 라이딩 시간, 거리 방향(왕복/편도)** 설정\
+3️⃣ **결과 페이지 (\*\***`/recommendations`\***\*)** → **추천 장소 지도 및 리스트** 표시
+
+### **3.2 API 요청**
+
+| API                          | 설명                                          |
+| ---------------------------- | --------------------------------------------- |
+| **`/api/weather`**           | 입력된 위치의 날씨 정보 가져오기              |
+| **`/api/recommend-rides`**   | AI에 추천 요청 (위치, 라이딩 시간, 왕복 여부) |
+| **Naver Map Directions API** | 추천 장소 지도 및 경로 표시                   |
+
+---
+
+## 🥇🏆 **4. 개발 우선순위 (MVP)** 🎖️✨
+
+### **4.1 필수 기능 (MVP)**
+
+✅ **인트로 페이지 (서비스 소개 및 시작 버튼)**\
+✅ **설정 페이지 (위치 설정, 슬라이더, 토글 버튼)**\
+✅ **결과 페이지 (지도, 추천 리스트, 경로 표시)**\
+✅ **로딩 UI 표시 및 페이지 전환**
+
+### **4.2 향후 추가 기능**
+
+🚀 **사용자 라이딩 기록 저장 및 통계 제공**\
+🚀 **라이딩 추천 알고리즘 개선 (AI 모델 개선)**\
+🚀 **소셜 기능(공유 및 커뮤니티)**
+
+---
+
+## 🗓️🚀 **5. 개발 일정 (예상)** ⏱️🌈
+
+| 단계      | 기간           | 주요 작업                                 |
+| --------- | -------------- | ----------------------------------------- |
+| **1주차** | 인트로 페이지  | UI 디자인 및 로띠 애니메이션 적용         |
+| **2주차** | 설정 페이지    | 위치 설정 및 라이딩 시간 슬라이더 구현    |
+| **3주차** | 결과 페이지    | 지도, 경로 표시, 리스트 출력 기능 개발    |
+| **4주차** | API 연동       | Llama3.3 및 Naver Map Directions API 연동 |
+| **5주차** | 성능 개선      | 로딩 UI 개선 및 모바일 UX 최적화          |
+| **6주차** | 테스트 및 배포 | 전 기능 점검 후 최종 배포                 |
+
+---
+
+## 🌟🎯 **6. 기대 효과** ✨💖
+
+✔ **라이딩 장소 고민 해결** → AI가 개인 맞춤형 추천 제공\
+✔ **모바일 전용 UI/UX 최적화** → **손쉬운 위치 선택 및 거리 설정**\
+✔ **Naver Map Directions API 연동** → **경로를 시각적으로 표시하여 이해도 향상**\
+✔ **확장 가능성** → **라이딩 기록 저장, 소셜 공유 기능 등 확장 가능**
+
+---
+
+## 🎬🎉 **7. 결론** 🌈🚀
+
+- **인트로 → 설정 → 결과**의 3단계 플로우로 사용자 경험 향상
+- **TypeScript 도입**으로 코드 안정성과 유지보수성 강화
+- **모바일 전용 UI 설계**로 **터치 인터랙션 최적화**
+- **화면플로우\_워크플로\_v0.2.0.png를 기준으로 UI 구성 완료** 🚀
+
+**💡 Cursor AI에게 이 문서를 전달하면 개발 방향을 명확히 이해할 수 있어요!**
