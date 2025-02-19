@@ -7,7 +7,7 @@
 - **제품명:** 자전거 라이딩 추천 서비스
 - **설명:** 사용자가 **위치, 라이딩 시간, 거리** 정보를 입력하면 **AI가 라이딩 장소를 추천**해주는 모바일 웹 서비스
 - **주요 기술 스택:**
-  - **프론트엔드:** Next.js 15, React, Tailwind CSS, shadcn/ui
+  - **프론트엔드:** Next.js 15, React, Tailwind CSS, shadcn
   - **상태 관리:** Zustand
   - **데이터 요청:** Tanstack Query
   - **지도 API:** Naver Map API (경로 추천 API 포함)
