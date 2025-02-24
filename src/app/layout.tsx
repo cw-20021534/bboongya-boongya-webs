@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import Script from 'next/script';
 
 import './globals.css';
 
@@ -26,6 +27,10 @@ export default function RootLayout({
  return (
   <html lang="en" className="min-w-screen">
    <body className={`${geistSans.variable} ${geistMono.variable} min-w-screen antialiased`}>
+    <Script
+     strategy="beforeInteractive"
+     src={`https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${process.env.NEXT_PUBLIC_NAVER_CLIENT_ID}`}
+    />
     {children}
    </body>
   </html>
