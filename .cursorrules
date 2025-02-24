@@ -1,0 +1,74 @@
+{
+  "rules": [
+    {
+      "name": "인트로 페이지 이동",
+      "description": "사용자가 시작하기 버튼을 클릭하면 설정 페이지(/settings)로 이동합니다.",
+      "triggers": ["시작하기 버튼 클릭", "인트로 완료"],
+      "actions": [
+        {
+          "type": "navigation",
+          "destination": "/settings"
+        }
+      ]
+    },
+    {
+      "name": "라이딩 시간 설정 시 API 호출 및 지도 업데이트",
+      "description": "사용자가 라이딩 시간을 조정할 때마다 Next Safe Action (Groq API 활용)을 호출하고, Naver Maps에서 현재 위치를 기준으로 이동 가능 거리 원형을 업데이트합니다.",
+      "triggers": ["라이딩 시간 설정", "슬라이더 조작", "거리 업데이트"],
+      "actions": [
+        {
+          "type": "api_call",
+          "endpoint": "/api/calculate-radius",
+          "method": "POST",
+          "payload": {
+            "user_location": "현재 위치 좌표",
+            "riding_time": "설정된 라이딩 시간",
+            "round_trip": "왕복 여부"
+          }
+        },
+        {
+          "type": "map_update",
+          "library": "Naver Maps",
+          "action": "draw_circle",
+          "parameters": {
+            "center": "현재 위치 좌표",
+            "radius": "API 응답에서 받은 이동 가능 거리",
+            "clear_previous": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "설정 완료 후 결과 페이지 이동",
+      "description": "설정 완료 버튼을 클릭하면 추천 결과 페이지(/recommendations)로 이동하고 로딩 UI를 표시합니다.",
+      "triggers": ["설정 완료 버튼 클릭", "확인 버튼 클릭"],
+      "actions": [
+        {
+          "type": "show_loading",
+          "duration": 2000
+        },
+        {
+          "type": "navigation",
+          "destination": "/recommendations"
+        }
+      ]
+    },
+    {
+      "name": "추천 장소 선택 시 지도 업데이트",
+      "description": "결과 페이지에서 추천 장소를 선택하면 Naver Maps에서 해당 위치를 중심으로 경로를 업데이트합니다.",
+      "triggers": ["추천 장소 선택", "리스트 클릭", "지도 갱신"],
+      "actions": [
+        {
+          "type": "map_update",
+          "library": "Naver Maps",
+          "action": "update_route",
+          "parameters": {
+            "destination": "선택된 장소 좌표",
+            "start": "현재 위치 좌표",
+            "route_type": "자전거"
+          }
+        }
+      ]
+    }
+  ]
+}
