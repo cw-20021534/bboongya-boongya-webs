@@ -13,7 +13,7 @@ import { ArrowLeft, Clock, MapPin, RotateCcw } from 'lucide-react';
 
 const Map = dynamic(() => import('@/components/map'), {
  ssr: false,
- loading: () => <div className="bg-muted h-72 w-full animate-pulse" />,
+ loading: () => <div className="h-72 w-full animate-pulse bg-muted" />,
 });
 
 const container = {
@@ -43,6 +43,12 @@ const item = {
 export default function SettingsPage() {
  const [duration, setDuration] = useState<number>(60);
  const [isRoundTrip, setIsRoundTrip] = useState<boolean>(false);
+
+ // TODO: Groq API 호출 로직
+ const handleDurationChange = async ([value]: number[]) => {
+  setDuration(value);
+  // 나중에 여기에 API 호출 추가
+ };
 
  return (
   <motion.div
@@ -75,31 +81,31 @@ export default function SettingsPage() {
    >
     <motion.section variants={item} className="space-y-2">
      <h2 className="flex items-center gap-2 font-medium">
-      <MapPin className="text-primary size-5" />
+      <MapPin className="size-5 text-primary" />
       출발 위치
      </h2>
-     <Map />
+     <Map duration={duration} isRoundTrip={isRoundTrip} />
     </motion.section>
 
     <motion.section variants={item} className="space-y-4">
      <div className="space-y-2">
       <h2 className="flex items-center gap-2 font-medium">
-       <Clock className="text-primary size-5" />
+       <Clock className="size-5 text-primary" />
        라이딩 시간
       </h2>
       <Slider
        value={[duration]}
-       onValueChange={([value]) => setDuration(value)}
+       onValueChange={handleDurationChange}
        min={10}
-       max={240}
+       max={300}
        step={10}
       />
-      <p className="text-muted-foreground text-right text-sm">{duration}분</p>
+      <p className="text-right text-sm text-muted-foreground">{duration}분</p>
      </div>
 
      <div className="space-y-2">
       <h2 className="flex items-center gap-2 font-medium">
-       <RotateCcw className="text-primary size-5" />
+       <RotateCcw className="size-5 text-primary" />
        왕복 여부
       </h2>
       <div className="flex items-center justify-between">
