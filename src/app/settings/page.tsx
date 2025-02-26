@@ -11,6 +11,7 @@ import BikeAnimation from '@/components/bike-animation';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
+import { useStore } from '@/store/useStore';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Clock, MapPin, RotateCcw } from 'lucide-react';
 
@@ -49,6 +50,7 @@ export default function SettingsPage() {
  const [duration, setDuration] = useState<number>(60);
  const [isRoundTrip, setIsRoundTrip] = useState<boolean>(false);
  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+ const { setPlaces } = useStore();
 
  // TODO: Groq API 호출 로직
  const handleDurationChange = async ([value]: number[]) => {
@@ -68,14 +70,25 @@ export default function SettingsPage() {
    });
 
    if (result?.data?.success) {
-    const searchParams = new URLSearchParams({
-     places: JSON.stringify(result.data.data),
-     location: JSON.stringify(currentLocation),
-     duration: duration.toString(),
-     roundTrip: isRoundTrip.toString(),
-    });
-
-    router.push(`/recommendations?${searchParams.toString()}`);
+    // Ensure the data structure includes distance and estimatedTime
+    setPlaces(
+     result.data.data.map(
+      (place: {
+       name: string;
+       description: string;
+       location: { lat: number; lng: number };
+       distance: number;
+       estimatedTime: number;
+      }) => ({
+       name: place.name,
+       description: place.description,
+       location: place.location,
+       distance: place.distance,
+       estimatedTime: place.estimatedTime,
+      }),
+     ),
+    );
+    router.push('/recommendations'); // URL 파라미터 없이 이동
    }
   } catch (error) {
    console.error('추천 요청 중 오류:', error);
