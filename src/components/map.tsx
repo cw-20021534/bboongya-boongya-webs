@@ -13,9 +13,10 @@ declare global {
 interface MapProps {
  duration: number; // 라이딩 시간 (분)
  isRoundTrip: boolean; // 왕복 여부
+ onLocationChange: (location: { lat: number; lng: number }) => void;
 }
 
-export default function Map({ duration, isRoundTrip }: MapProps) {
+export default function Map({ duration, isRoundTrip, onLocationChange }: MapProps) {
  const mapRef = useRef<HTMLDivElement>(null);
  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
  const markerRef = useRef<naver.maps.Marker | null>(null);
@@ -151,5 +152,14 @@ export default function Map({ duration, isRoundTrip }: MapProps) {
   }
  }, [duration, isRoundTrip, currentLocation]);
 
- return <div ref={mapRef} className="h-72 w-full rounded-lg border" />;
+ // currentLocation 상태가 변경될 때마다 부모 컴포넌트에 알림
+ useEffect(() => {
+  if (currentLocation) {
+   onLocationChange(currentLocation);
+  }
+ }, [currentLocation, onLocationChange]);
+
+ return (
+  <div ref={mapRef} className="relative h-72 w-full rounded-lg border" style={{ zIndex: 0 }} />
+ );
 }

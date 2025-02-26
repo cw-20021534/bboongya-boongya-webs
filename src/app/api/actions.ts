@@ -62,16 +62,13 @@ export const calculateRadius = actionClient
 
    const data = await response.json();
 
-   console.log(data.choices);
-
    const result = JSON.parse(data.choices[0]?.message?.content || '{}');
-   console.log({ result });
 
    if (!result.distance) {
     throw new Error('거리 계산 실패');
    }
 
-   const radius = roundTrip ? (result.distance * 1000) / 2 : result.distance * 1000; // m 단위로 변환
+   const radius = roundTrip ? result.distance * 1000 : (result.distance * 1000) / 2; // m 단위로 변환
 
    return {
     success: true,
@@ -88,6 +85,88 @@ export const calculateRadius = actionClient
    return {
     success: false,
     error: '반경 계산 중 오류가 발생했습니다.',
+   };
+  }
+ });
+
+const recommendPlacesSchema = z.object({
+ userLocation: z.object({
+  lat: z.number(),
+  lng: z.number(),
+ }),
+ ridingTime: z.number().min(10).max(300),
+ roundTrip: z.boolean(),
+});
+
+export const recommendPlaces = actionClient
+ .schema(recommendPlacesSchema)
+ .action(async ({ parsedInput: { userLocation, ridingTime, roundTrip } }) => {
+  try {
+   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+     'Content-Type': 'application/json',
+     Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+    },
+    body: JSON.stringify({
+     model: 'llama-3.1-8b-instant',
+     messages: [
+      {
+       role: 'system',
+       content: `자전거 라이딩 장소 추천 시스템입니다. 다음 조건을 고려하여 최대 5곳의 장소를 추천해주세요:
+        - 주어진 위치에서 자전거로 이동 가능한 거리
+        - 라이딩 시간과 왕복 여부 고려
+        - 실제 존재하는 장소만 추천
+        - 응답은 반드시 다음 JSON 형식으로 반환:
+        {
+          "places": [
+            {
+              "name": string, // 장소명
+              "description": string, // 추천 이유
+              "location": { lat: number, lng: number }, // 좌표
+              "distance": number, // 출발지로부터의 거리 (km)
+              "estimatedTime": number // 예상 이동 시간 (분)
+            }
+          ]
+        }`,
+      },
+      {
+       role: 'user',
+       content: `
+        - 현재 위치: (위도 ${userLocation.lat}, 경도 ${userLocation.lng})
+        - 라이딩 시간: ${ridingTime}분
+        - 이동 방식: ${roundTrip ? '왕복' : '편도'}
+        
+        위 조건을 반영해 추천 장소 목록을 JSON 형식으로 반환해주세요.`,
+      },
+     ],
+     max_tokens: 1000,
+     temperature: 0.7,
+     top_p: 0.9,
+     response_format: { type: 'json_object' },
+    }),
+   });
+
+   if (!response.ok) {
+    throw new Error('Groq API 호출 실패');
+   }
+
+   const data = await response.json();
+   const result = JSON.parse(data.choices[0]?.message?.content || '{}');
+
+   if (!result.places?.length) {
+    throw new Error('장소 추천 실패');
+   }
+
+   return {
+    success: true,
+    data: result.places,
+   };
+  } catch (error) {
+   console.error('장소 추천 중 오류:', error);
+   return {
+    success: false,
+    error: '장소 추천 중 오류가 발생했습니다.',
    };
   }
  });
