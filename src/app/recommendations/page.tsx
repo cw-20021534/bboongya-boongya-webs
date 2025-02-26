@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import Link from 'next/link';
 
+import { BottomSheet } from '@/components/BottomSheet';
 import RecommendationsMap from '@/components/RecommendationsMap';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +16,16 @@ import { ArrowLeft, Clock, MapPin, Navigation } from 'lucide-react';
 export default function RecommendationsPage() {
  const { places } = useStore(); // Zustand 스토어에서 장소 가져오기
  const [selectedPlace, setSelectedPlace] = useState<{ lat: number; lng: number } | null>(null);
+ const [isBottomSheetOpen, setBottomSheetOpen] = useState(false);
+
+ const handlePlaceSelect = (place: Place) => {
+  setSelectedPlace(place.location);
+  setBottomSheetOpen(true);
+ };
+
+ const selectedPlaceData = places.find(
+  (place) => place.location.lat === selectedPlace?.lat && place.location.lng === selectedPlace?.lng,
+ );
 
  return (
   <motion.div className="flex min-h-screen flex-col">
@@ -42,7 +53,18 @@ export default function RecommendationsPage() {
    >
     {/* 지도 영역 - 고정 */}
     <div className="sticky top-0 z-10">
-     <RecommendationsMap places={places} selectedPlace={selectedPlace} />
+     <RecommendationsMap
+      places={places}
+      selectedPlace={selectedPlace}
+      onPlaceSelect={(location) => {
+       const place = places.find(
+        (p) => p.location.lat === location.lat && p.location.lng === location.lng,
+       );
+       if (place) {
+        handlePlaceSelect(place);
+       }
+      }}
+     />
     </div>
 
     {/* 추천 장소 리스트 - 스크롤 영역 */}
@@ -64,7 +86,7 @@ export default function RecommendationsPage() {
             ? 'from-primary/10 via-purple-500/5 to-pink-500/10 ring-2 ring-primary'
             : 'hover:bg-accent/5'
           }`}
-          onClick={() => setSelectedPlace(place.location)}
+          onClick={() => handlePlaceSelect(place)}
          >
           <CardHeader className="space-y-1.5 p-4">
            <CardTitle className="flex items-center gap-2 truncate text-base font-medium">
@@ -97,6 +119,12 @@ export default function RecommendationsPage() {
       </AnimatePresence>
      </div>
     </ScrollArea>
+
+    <BottomSheet
+     isOpen={isBottomSheetOpen}
+     onClose={() => setBottomSheetOpen(false)}
+     place={selectedPlaceData}
+    />
    </motion.main>
   </motion.div>
  );
