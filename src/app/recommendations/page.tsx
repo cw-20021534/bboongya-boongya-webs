@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import Link from 'next/link';
 
@@ -17,6 +17,26 @@ export default function RecommendationsPage() {
  const { places } = useStore(); // Zustand 스토어에서 장소 가져오기
  const [selectedPlace, setSelectedPlace] = useState<{ lat: number; lng: number } | null>(null);
  const [isBottomSheetOpen, setBottomSheetOpen] = useState(false);
+ const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+ // 컴포넌트 마운트 시 현재 위치 가져오기
+ useEffect(() => {
+  if (navigator.geolocation) {
+   navigator.geolocation.getCurrentPosition(
+    (position) => {
+     setCurrentLocation({
+      lat: position.coords.latitude,
+      lng: position.coords.longitude,
+     });
+    },
+    (error) => {
+     console.error('위치 정보를 가져오는데 실패했습니다:', error);
+     // 기본 위치 설정 (예: 서울시청)
+     setCurrentLocation({ lat: 37.5666805, lng: 126.9784147 });
+    },
+   );
+  }
+ }, []);
 
  const handlePlaceSelect = (place: Place) => {
   setSelectedPlace(place.location);
@@ -124,6 +144,7 @@ export default function RecommendationsPage() {
      isOpen={isBottomSheetOpen}
      onClose={() => setBottomSheetOpen(false)}
      place={selectedPlaceData}
+     currentLocation={currentLocation}
     />
    </motion.main>
   </motion.div>
