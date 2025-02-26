@@ -5,9 +5,14 @@ import { useEffect, useRef } from 'react';
 interface RecommendationsMapProps {
  places: { name: string; location: { lat: number; lng: number } }[];
  selectedPlace: { lat: number; lng: number } | null;
+ onPlaceSelect: (location: { lat: number; lng: number }) => void;
 }
 
-export default function RecommendationsMap({ places, selectedPlace }: RecommendationsMapProps) {
+export default function RecommendationsMap({
+ places,
+ selectedPlace,
+ onPlaceSelect,
+}: RecommendationsMapProps) {
  const mapRef = useRef<HTMLDivElement>(null);
 
  useEffect(() => {
@@ -22,6 +27,11 @@ export default function RecommendationsMap({ places, selectedPlace }: Recommenda
     const marker = new window.naver.maps.Marker({
      position: new window.naver.maps.LatLng(place.location.lat, place.location.lng),
      map: map,
+    });
+
+    // 마커 클릭 이벤트 추가
+    window.naver.maps.Event.addListener(marker, 'click', () => {
+     onPlaceSelect(place.location);
     });
 
     // 툴팁 추가
@@ -50,7 +60,7 @@ export default function RecommendationsMap({ places, selectedPlace }: Recommenda
     markers.forEach((marker) => marker.setMap(null)); // 컴포넌트 언마운트 시 마커 제거
    };
   }
- }, [places, selectedPlace]);
+ }, [places, selectedPlace, onPlaceSelect]);
 
  return (
   <div className="sticky top-0 z-10 h-72 w-full rounded-lg border">
