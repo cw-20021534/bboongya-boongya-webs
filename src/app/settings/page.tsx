@@ -4,7 +4,10 @@ import { useState } from 'react';
 
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
+import { recommendPlaces } from '@/app/api/actions';
+import BikeAnimation from '@/components/bike-animation';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
@@ -41,8 +44,11 @@ const item = {
 };
 
 export default function SettingsPage() {
+ const router = useRouter();
+ const [isLoading, setIsLoading] = useState(false);
  const [duration, setDuration] = useState<number>(60);
  const [isRoundTrip, setIsRoundTrip] = useState<boolean>(false);
+ const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
 
  // TODO: Groq API 호출 로직
  const handleDurationChange = async ([value]: number[]) => {
@@ -50,13 +56,52 @@ export default function SettingsPage() {
   // 나중에 여기에 API 호출 추가
  };
 
+ const handleSubmit = async () => {
+  if (!currentLocation) return;
+
+  try {
+   setIsLoading(true);
+   const result = await recommendPlaces({
+    userLocation: currentLocation,
+    ridingTime: duration,
+    roundTrip: isRoundTrip,
+   });
+
+   if (result?.data?.success) {
+    const searchParams = new URLSearchParams({
+     places: JSON.stringify(result.data.data),
+     location: JSON.stringify(currentLocation),
+     duration: duration.toString(),
+     roundTrip: isRoundTrip.toString(),
+    });
+
+    router.push(`/recommendations?${searchParams.toString()}`);
+   }
+  } catch (error) {
+   console.error('추천 요청 중 오류:', error);
+  } finally {
+   setIsLoading(false);
+  }
+ };
+
  return (
-  <motion.div
-   initial={{ opacity: 0 }}
-   animate={{ opacity: 1 }}
-   transition={{ duration: 0.5 }}
-   className="flex min-h-screen flex-col"
-  >
+  <motion.div className="flex min-h-screen flex-col">
+   {/* 로딩 오버레이 */}
+   {isLoading && (
+    <motion.div
+     initial={{ opacity: 0 }}
+     animate={{ opacity: 1 }}
+     className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm"
+    >
+     <div className="z-[10000]">
+      <BikeAnimation />
+     </div>
+     <p className="z-[10000] animate-pulse text-lg font-medium text-primary">
+      추천 장소를 찾고 있어요...
+     </p>
+    </motion.div>
+   )}
+
    <motion.header
     initial={{ y: -10, opacity: 0 }}
     animate={{ y: 0, opacity: 1 }}
@@ -84,7 +129,7 @@ export default function SettingsPage() {
       <MapPin className="size-5 text-primary" />
       출발 위치
      </h2>
-     <Map duration={duration} isRoundTrip={isRoundTrip} />
+     <Map duration={duration} isRoundTrip={isRoundTrip} onLocationChange={setCurrentLocation} />
     </motion.section>
 
     <motion.section variants={item} className="space-y-4">
@@ -133,8 +178,25 @@ export default function SettingsPage() {
     transition={{ duration: 0.5, delay: 0.4 }}
     className="border-t p-4"
    >
-    <Button className="w-full" size="lg">
-     확인
+    <Button
+     className="relative w-full"
+     size="lg"
+     onClick={handleSubmit}
+     disabled={isLoading || !currentLocation}
+    >
+     {isLoading ? (
+      <>
+       <motion.div
+        className="absolute inset-0 bg-primary/10"
+        initial={{ width: '0%' }}
+        animate={{ width: '100%' }}
+        transition={{ duration: 2 }}
+       />
+       <span className="relative">추천 장소 찾는 중...</span>
+      </>
+     ) : (
+      '확인'
+     )}
     </Button>
    </motion.footer>
   </motion.div>
