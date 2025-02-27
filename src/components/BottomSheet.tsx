@@ -165,15 +165,15 @@ export function BottomSheet({ isOpen, onClose, place, currentLocation }: BottomS
      </div>
     </Sheet.Header>
 
-    <Sheet.Content>
-     <Sheet.Scroller draggableAt="both">
+    <Sheet.Content disableDrag>
+     <Sheet.Scroller>
       <ContentWrapper>
        <PlaceTitle>
         <MapPin className="size-5 shrink-0 text-primary" />
         {place.name}
        </PlaceTitle>
 
-       <div className="mb-4 h-48 w-full rounded-lg border">
+       <div className="sticky top-0 z-10 mb-4 h-48 w-full rounded-lg border">
         <div ref={mapRef} className="h-full w-full" />
        </div>
 
