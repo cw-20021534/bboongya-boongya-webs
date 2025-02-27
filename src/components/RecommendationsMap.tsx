@@ -5,12 +5,14 @@ import { useEffect, useRef } from 'react';
 interface RecommendationsMapProps {
  places: { name: string; location: { lat: number; lng: number } }[];
  selectedPlace: { lat: number; lng: number } | null;
+ currentLocation: { lat: number; lng: number } | null;
  onPlaceSelect: (location: { lat: number; lng: number }) => void;
 }
 
 export default function RecommendationsMap({
  places,
  selectedPlace,
+ currentLocation,
  onPlaceSelect,
 }: RecommendationsMapProps) {
  const mapRef = useRef<HTMLDivElement>(null);
@@ -51,6 +53,18 @@ export default function RecommendationsMap({
     return marker;
    });
 
+   // 현재 위치 마커 추가
+   if (currentLocation) {
+    new window.naver.maps.Marker({
+     position: new window.naver.maps.LatLng(currentLocation.lat, currentLocation.lng),
+     map: map,
+     icon: {
+      content:
+       '<div style="background-color: #2196F3; padding: 5px; border-radius: 50%; border: 2px solid white;"></div>',
+     },
+    });
+   }
+
    // 선택된 장소 강조
    if (selectedPlace) {
     map.setCenter(new window.naver.maps.LatLng(selectedPlace.lat, selectedPlace.lng));
@@ -60,7 +74,7 @@ export default function RecommendationsMap({
     markers.forEach((marker) => marker.setMap(null)); // 컴포넌트 언마운트 시 마커 제거
    };
   }
- }, [places, selectedPlace, onPlaceSelect]);
+ }, [places, selectedPlace, currentLocation, onPlaceSelect]);
 
  return (
   <div className="sticky top-0 z-10 h-72 w-full rounded-lg border">

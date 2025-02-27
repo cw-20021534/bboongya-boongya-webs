@@ -76,6 +76,7 @@ export default function RecommendationsPage() {
      <RecommendationsMap
       places={places}
       selectedPlace={selectedPlace}
+      currentLocation={currentLocation}
       onPlaceSelect={(location) => {
        const place = places.find(
         (p) => p.location.lat === location.lat && p.location.lng === location.lng,
